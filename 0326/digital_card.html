@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>何雅智 Linda｜數位名片</title>
+  <style>
+    :root {
+      --bg-color: #f4efe6;
+      --card-bg: rgba(255, 255, 255, 0.78);
+      --text-main: #2f2a26;
+      --text-sub: #5b5148;
+      --accent: #3f7fbf;
+      --accent-hover: #32689e;
+      --border: rgba(95, 83, 71, 0.2);
+      --shadow: 0 18px 44px rgba(42, 34, 28, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.72), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.6), transparent 45%),
+        var(--bg-color);
+      color: var(--text-main);
+      transition: background-color 500ms ease;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(92vw, 680px);
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      backdrop-filter: blur(6px);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+      opacity: 0;
+      transform: translateY(30px) scale(0.96);
+      pointer-events: none;
+    }
+
+    .card.is-open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+      transition: opacity 700ms ease, transform 700ms ease;
+      cursor: default;
+    }
+
+    .card.is-closed {
+      cursor: default;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, rgba(63, 127, 191, 0.08), transparent 35%),
+        repeating-linear-gradient(
+          90deg,
+          rgba(95, 83, 71, 0.06) 0px,
+          rgba(95, 83, 71, 0.06) 1px,
+          transparent 1px,
+          transparent 22px
+        );
+      pointer-events: none;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: -40px;
+      background:
+        radial-gradient(circle at 12% 15%, rgba(216, 120, 175, 0.11), transparent 36%),
+        radial-gradient(circle at 86% 86%, rgba(216, 120, 175, 0.08), transparent 42%);
+      opacity: 0.35;
+      filter: blur(10px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .decor {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0.30;
+      filter: blur(0.15px);
+      z-index: 0;
+      color: rgba(216, 120, 175, 0.95);
+      mix-blend-mode: multiply;
+    }
+
+    .decor--tl {
+      top: -18px;
+      left: -18px;
+      width: 210px;
+      height: 210px;
+      transform: rotate(-8deg);
+    }
+
+    .decor--br {
+      right: -18px;
+      bottom: -18px;
+      width: 240px;
+      height: 240px;
+      transform: rotate(12deg);
+      opacity: 0.22;
+    }
+
+    .reveal-petals {
+      position: fixed;
+      inset: 0;
+      z-index: 7;
+      pointer-events: none;
+    }
+
+    .petal {
+      position: absolute;
+      width: var(--w, 18px);
+      height: var(--h, 12px);
+      left: var(--x, 50%);
+      top: var(--y, 50%);
+      transform: translate(-50%, -50%) rotate(var(--r, 0deg));
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 45%),
+        linear-gradient(135deg, rgba(216, 120, 175, 0.98), rgba(255, 170, 216, 0.65));
+      border-radius: 50% 50% 45% 60%;
+      box-shadow: 0 8px 18px rgba(216, 120, 175, 0.14);
+      opacity: 0;
+      animation: petalFly var(--dur, 1200ms) cubic-bezier(0.2, 0.8, 0.2, 1) var(--delay, 0ms) forwards;
+      filter: saturate(1.04) blur(0.2px);
+    }
+
+    @keyframes petalFly {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) translate(0, 0) rotate(var(--r, 0deg)) scale(0.75);
+      }
+      15% {
+        opacity: 0.95;
+      }
+      55% {
+        opacity: 0.7;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) translate(var(--dx, 0px), var(--dy, -20px)) rotate(var(--dr, 120deg)) scale(1.06);
+      }
+    }
+
+    .card.is-closed .content {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      filter: blur(6px);
+    }
+
+    .card.is-open .content {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+      filter: blur(0);
+      transition:
+        opacity 260ms ease 250ms,
+        filter 600ms ease 250ms,
+        transform 480ms ease 250ms;
+    }
+
+    .card.is-closed .label,
+    .card.is-closed h1,
+    .card.is-closed .subtitle,
+    .card.is-closed .intro,
+    .card.is-closed .actions,
+    .card.is-closed .portrait,
+    .card.is-closed .icon-link {
+      animation: none !important;
+      opacity: 0 !important;
+      transform: translateY(12px) !important;
+      filter: none !important;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 28px;
+      padding: 30px;
+    }
+
+    .portrait-wrap {
+      display: grid;
+      place-items: center;
+    }
+
+    .portrait {
+      width: 190px;
+      height: 190px;
+      border-radius: 20px;
+      object-fit: cover;
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 28px rgba(42, 34, 28, 0.2);
+      transition: transform 360ms ease, box-shadow 360ms ease, filter 360ms ease;
+      transform-style: preserve-3d;
+      filter: saturate(1.04);
+    }
+
+    .portrait:hover {
+      transform: rotate(-3deg) scale(1.03);
+      box-shadow: 0 14px 30px rgba(50, 104, 158, 0.28);
+      filter: saturate(1.1);
+    }
+
+    .label {
+      display: inline-block;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      color: var(--text-sub);
+      margin-bottom: 10px;
+      background: rgba(255, 255, 255, 0.65);
+      opacity: 0;
+      transform: translateY(10px);
+      animation: textIn 700ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation-delay: 120ms;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      line-height: 1.22;
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: textIn 720ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation-delay: 200ms;
+    }
+
+    .subtitle {
+      margin: 8px 0 12px;
+      color: var(--text-sub);
+      font-size: 0.98rem;
+      letter-spacing: 0.04em;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: textIn 760ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation-delay: 300ms;
+    }
+
+    .intro {
+      margin: 0 0 10px;
+      font-size: 1.02rem;
+      line-height: 1.8;
+      color: #3a342f;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: textIn 780ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation-delay: 380ms;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: textIn 820ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation-delay: 480ms;
+    }
+
+    .icon-link {
+      width: 46px;
+      height: 46px;
+      padding: 0;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.62);
+      color: var(--text-sub);
+      transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, color 220ms ease;
+      box-shadow: 0 10px 28px rgba(42, 34, 28, 0.06);
+    }
+
+    .icon-link:hover {
+      transform: translateY(-1px) rotate(-1deg);
+      box-shadow: 0 14px 30px rgba(50, 104, 158, 0.22);
+      border-color: rgba(63, 127, 191, 0.35);
+      color: var(--accent);
+    }
+
+    .icon-link svg {
+      width: 22px;
+      height: 22px;
+      display: block;
+    }
+
+    @keyframes textIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(3px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card,
+      .decor,
+      .label,
+      h1,
+      .subtitle,
+      .intro,
+      .actions,
+      .portrait,
+      .icon-link {
+        animation: none !important;
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .content {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .actions {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="card is-closed" id="namecard">
+    <svg class="decor decor--tl" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+      <defs>
+        <radialGradient id="plumPetal" cx="50%" cy="40%" r="70%">
+          <stop offset="0%" stop-color="currentColor" stop-opacity="0.33" />
+          <stop offset="70%" stop-color="currentColor" stop-opacity="0.12" />
+          <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <g transform="translate(100 100)">
+        <path d="M0,-68 C18,-62 28,-40 22,-22 C16,-4 6,6 0,10 C-6,6 -16,-4 -22,-22 C-28,-40 -18,-62 0,-68Z" fill="url(#plumPetal)" />
+        <path d="M68,0 C62,18 40,28 22,22 C4,16 -6,6 -10,0 C-6,-6 4,-16 22,-22 C40,-28 62,-18 68,0Z" fill="url(#plumPetal)" transform="rotate(72)" />
+        <path d="M68,0 C62,18 40,28 22,22 C4,16 -6,6 -10,0 C-6,-6 4,-16 22,-22 C40,-28 62,-18 68,0Z" fill="url(#plumPetal)" transform="rotate(144)" />
+        <path d="M68,0 C62,18 40,28 22,22 C4,16 -6,6 -10,0 C-6,-6 4,-16 22,-22 C40,-28 62,-18 68,0Z" fill="url(#plumPetal)" transform="rotate(216)" />
+        <path d="M68,0 C62,18 40,28 22,22 C4,16 -6,6 -10,0 C-6,-6 4,-16 22,-22 C40,-28 62,-18 68,0Z" fill="url(#plumPetal)" transform="rotate(288)" />
+        <circle r="10" fill="currentColor" opacity="0.18" />
+        <circle r="2.3" cx="-4" cy="-2" fill="currentColor" opacity="0.32" />
+        <circle r="2.3" cx="4" cy="-2" fill="currentColor" opacity="0.32" />
+        <circle r="2.3" cx="0" cy="4" fill="currentColor" opacity="0.32" />
+        <path d="M-68,52 C-35,42 -18,22 0,10" fill="none" stroke="currentColor" stroke-opacity="0.22" stroke-width="5" stroke-linecap="round" />
+        <path d="M-72,66 C-46,60 -28,46 -12,30" fill="none" stroke="currentColor" stroke-opacity="0.16" stroke-width="3" stroke-linecap="round" />
+      </g>
+    </svg>
+
+    <svg class="decor decor--br" viewBox="0 0 240 240" aria-hidden="true" focusable="false">
+      <g transform="translate(120 120)">
+        <path d="M0,-80 C22,-74 34,-48 26,-26 C18,-4 7,8 0,12 C-7,8 -18,-4 -26,-26 C-34,-48 -22,-74 0,-80Z" fill="currentColor" opacity="0.10" />
+        <path d="M80,0 C74,22 48,34 26,26 C4,18 -8,7 -12,0 C-8,-7 4,-18 26,-26 C48,-34 74,-22 80,0Z" fill="currentColor" opacity="0.10" transform="rotate(72)" />
+        <path d="M80,0 C74,22 48,34 26,26 C4,18 -8,7 -12,0 C-8,-7 4,-18 26,-26 C48,-34 74,-22 80,0Z" fill="currentColor" opacity="0.10" transform="rotate(144)" />
+        <path d="M80,0 C74,22 48,34 26,26 C4,18 -8,7 -12,0 C-8,-7 4,-18 26,-26 C48,-34 74,-22 80,0Z" fill="currentColor" opacity="0.10" transform="rotate(216)" />
+        <path d="M80,0 C74,22 48,34 26,26 C4,18 -8,7 -12,0 C-8,-7 4,-18 26,-26 C48,-34 74,-22 80,0Z" fill="currentColor" opacity="0.10" transform="rotate(288)" />
+        <circle r="12" fill="currentColor" opacity="0.09" />
+        <path d="M-92,62 C-52,58 -26,44 0,12" fill="none" stroke="currentColor" stroke-opacity="0.14" stroke-width="6" stroke-linecap="round" />
+      </g>
+    </svg>
+
+    <section class="content">
+      <div class="portrait-wrap">
+        <img
+          class="portrait"
+          id="portrait"
+          src="file:///C:/Users/user/.cursor/projects/c-Users-user-Desktop-AI/assets/c__Users_user_AppData_Roaming_Cursor_User_workspaceStorage_9ebff988b43d34498b3041bde8c9888f_images_BFC0A396-91D6-48B2-9D1D-BED74073AFD0-0d709c1a-9910-4efb-8a58-89a1fbd9df35.png"
+          data-default="file:///C:/Users/user/.cursor/projects/c-Users-user-Desktop-AI/assets/c__Users_user_AppData_Roaming_Cursor_User_workspaceStorage_9ebff988b43d34498b3041bde8c9888f_images_BFC0A396-91D6-48B2-9D1D-BED74073AFD0-0d709c1a-9910-4efb-8a58-89a1fbd9df35.png"
+          data-hover="file:///C:/Users/user/.cursor/projects/c-Users-user-Desktop-AI/assets/S__47718409.jpg"
+          alt="何雅智 Linda 大頭照"
+        />
+      </div>
+
+      <div>
+        <span class="label">Digital Name Card</span>
+        <h1>何雅智 Linda</h1>
+        <p class="subtitle">人文美學 × 科技互動</p>
+        <p class="intro">學歷：清大服科所碩一、中央中文與資管<br>興趣：運動、音樂、看小說</p>
+        <div class="actions">
+          <a
+            class="icon-link"
+            href="https://github.com/linda123456789123456789"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M12 .6C5.6.6.5 5.8.5 12.3c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2.2c-3.2.7-3.9-1.4-3.9-1.4-.5-1.3-1.2-1.6-1.2-1.6-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 .1 1.6-.7 1.9-1.1.1-.7.4-1.2.7-1.5-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2 1-.3 2-.4 3-.4s2 .1 3 .4c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.2 0 4.5-2.7 5.5-5.3 5.8.4.4.8 1.2.8 2.4v3.5c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.8 18.4.6 12 .6z"/>
+            </svg>
+          </a>
+
+          <a
+            class="icon-link"
+            href="https://www.facebook.com/share/18NjsRx4Zc/?mibextid=wwXIfr"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+            title="Facebook"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M22 12.1c0-5.5-4.5-10-10-10S2 6.6 2 12.1c0 5 3.7 9.1 8.5 9.9v-7H8.1v-2.9h2.4V9.9c0-2.4 1.4-3.7 3.5-3.7 1 0 2 .2 2 .2v2.3h-1.1c-1.1 0-1.4.7-1.4 1.4v1.7h2.4l-.4 2.9h-2v7c4.8-.8 8.5-4.9 8.5-9.9z"/>
+            </svg>
+          </a>
+
+          <a
+            class="icon-link"
+            href="mailto:linda.ho@iss.nthu.edu.tw"
+            aria-label="Email"
+            title="Email"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="reveal-petals" id="reveal-petals" aria-hidden="true"></div>
+
+  <script>
+    const cardEl = document.getElementById("namecard");
+    const petalsEl = document.getElementById("reveal-petals");
+    const portraitEl = document.getElementById("portrait");
+
+    const reduceMotion =
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let index = 0;
+    const bgColors = ["#f4efe6", "#efe7da", "#f3eadf", "#ebe4d7", "#f2ecdf"];
+
+    function changeBackground() {
+      index = (index + 1) % bgColors.length;
+      document.body.style.setProperty("--bg-color", bgColors[index]);
+    }
+
+    function spawnPetals() {
+      if (!petalsEl) return;
+      petalsEl.innerHTML = "";
+
+      const count = 18;
+      const vw = window.innerWidth || 1200;
+      const vh = window.innerHeight || 800;
+
+      for (let i = 0; i < count; i++) {
+        const petal = document.createElement("span");
+        petal.className = "petal";
+
+        const startX = Math.round(10 + Math.random() * 14);
+        const startY = Math.round(45 + (Math.random() * 22 - 11));
+
+        const dx = Math.round(vw * (0.65 + Math.random() * 0.35));
+        const dy = Math.round(vh * (Math.random() * 0.10 - 0.03));
+        const dr = Math.round(Math.random() * 120 + 30);
+
+        const w = Math.round(14 + Math.random() * 14);
+        const h = Math.round(9 + Math.random() * 10);
+        const dur = Math.round(1800 + Math.random() * 900);
+        const delay = Math.round(Math.random() * 420);
+
+        petal.style.setProperty("--x", `${startX}%`);
+        petal.style.setProperty("--y", `${startY}%`);
+        petal.style.setProperty("--w", `${w}px`);
+        petal.style.setProperty("--h", `${h}px`);
+        petal.style.setProperty("--dx", `${dx}px`);
+        petal.style.setProperty("--dy", `${dy}px`);
+        petal.style.setProperty("--dr", `${dr}deg`);
+        petal.style.setProperty("--dur", `${dur}ms`);
+        petal.style.setProperty("--delay", `${delay}ms`);
+        petal.style.setProperty("--r", `${Math.round(Math.random() * 360)}deg`);
+
+        petalsEl.appendChild(petal);
+      }
+    }
+
+    function revealCard() {
+      if (!cardEl) return;
+      cardEl.classList.remove("is-closed", "is-opening");
+      cardEl.classList.add("is-open");
+      if (petalsEl) petalsEl.innerHTML = "";
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      if (reduceMotion) {
+        revealCard();
+      } else {
+        spawnPetals();
+        setTimeout(revealCard, 1500);
+      }
+
+      if (portraitEl) {
+        const defaultSrc = portraitEl.dataset.default;
+        const hoverSrc = portraitEl.dataset.hover;
+
+        portraitEl.addEventListener("mouseenter", () => {
+          portraitEl.src = hoverSrc;
+        });
+
+        portraitEl.addEventListener("mouseleave", () => {
+          portraitEl.src = defaultSrc;
+        });
+      }
+    });
+
+    document.body.addEventListener("click", (event) => {
+      if (!cardEl || !cardEl.classList.contains("is-open")) return;
+      if (!event.target.closest("a")) {
+        changeBackground();
+      }
+    });
+  </script>
+</body>
+</html>
