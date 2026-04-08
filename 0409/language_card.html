@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>有聲單字卡學習系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4A90E2;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        /* Category Buttons */
+        .category-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 12px 24px;
+            border: 2px solid #4A90E2;
+            background: white;
+            color: #4A90E2;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .category-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .category-btn.active {
+            background: #4A90E2;
+            color: white;
+        }
+
+        /* Flashcard */
+        .flashcard-container {
+            perspective: 1000px;
+            margin-bottom: 30px;
+            height: 300px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .card-front h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        .card-front p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .card-back h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .card-back .example {
+            font-size: 15px;
+            font-style: italic;
+            text-align: center;
+            line-height: 1.8;
+            opacity: 0.95;
+        }
+
+        /* Audio Controls */
+        .audio-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .audio-btn {
+            padding: 12px 20px;
+            border: none;
+            background: #F5A623;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .audio-btn:hover {
+            background: #e09515;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(245, 166, 35, 0.4);
+        }
+
+        .audio-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Navigation */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            border: none;
+            background: #4A90E2;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: #357abd;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .card-counter {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4A90E2;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .card-front h2 {
+                font-size: 36px;
+            }
+
+            .card-back h3 {
+                font-size: 28px;
+            }
+
+            .category-btn {
+                padding: 10px 18px;
+                font-size: 14px;
+            }
+
+            .audio-btn {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 有聲單字卡學習系統</h1>
+        
+        <!-- Category Buttons -->
+        <div class="category-buttons">
+            <button class="category-btn active" data-category="greetings">日常問候</button>
+            <button class="category-btn" data-category="transportation">交通情境</button>
+            <button class="category-btn" data-category="accommodation">住宿情境</button>
+        </div>
+
+        <!-- Flashcard -->
+        <div class="flashcard-container">
+            <div class="flashcard" id="flashcard">
+                <div class="card-face card-front">
+                    <h2 id="english-sentence">Hello, how are you today?</h2>
+                    <p>點擊翻牌查看對話</p>
+                </div>
+                <div class="card-face card-back">
+                    <h3 id="chinese-translation">你好，你今天過得如何？</h3>
+                    <p class="example" id="dialogue-text">"A: Hello! B: Hi there! A: How are you today? B: I'm doing great, thanks!"</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audio Controls -->
+        <div class="audio-controls">
+            <button class="audio-btn" data-speed="0.7">🐢 慢速</button>
+            <button class="audio-btn" data-speed="1.0">🔊 正常</button>
+            <button class="audio-btn" data-speed="1.3">⚡ 快速</button>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-btn" id="prev-btn">◀ 上一張</button>
+            <div class="card-counter" id="card-counter">1/5</div>
+            <button class="nav-btn" id="next-btn">下一張 ▶</button>
+        </div>
+    </div>
+
+    <script>
+        // Flashcard Data
+        const flashcards = {
+            greetings: [
+                { 
+                    sentence: "Hello, how are you today?", 
+                    chinese: "你好，你今天過得如何？", 
+                    dialogue: "A: Hello! B: Hi there! A: How are you today? B: I'm doing great, thanks!" 
+                },
+                { 
+                    sentence: "Good morning, have a great day!", 
+                    chinese: "早安，祝你有美好的一天！", 
+                    dialogue: "A: Good morning, Sarah! B: Good morning! A: Have a great day! B: You too!" 
+                },
+                { 
+                    sentence: "Thank you for your help.", 
+                    chinese: "謝謝你的幫助。", 
+                    dialogue: "A: Here's the information you need. B: Thank you for your help! A: You're welcome." 
+                },
+                { 
+                    sentence: "Goodbye, see you tomorrow!", 
+                    chinese: "再見，明天見！", 
+                    dialogue: "A: I'm heading out now. B: Goodbye! A: See you tomorrow! B: See you!" 
+                },
+                { 
+                    sentence: "Nice to meet you, I'm John.", 
+                    chinese: "很高興認識你，我是約翰。", 
+                    dialogue: "A: Hi! Nice to meet you, I'm John. B: Nice to meet you too! I'm Mary. A: Great to connect!" 
+                }
+            ],
+            transportation: [
+                { 
+                    sentence: "Where is the airport?", 
+                    chinese: "機場在哪裡？", 
+                    dialogue: "A: Excuse me, where is the airport? B: It's about 20 minutes from here. A: Thank you!" 
+                },
+                { 
+                    sentence: "The bus stop is near the park.", 
+                    chinese: "公車站在公園附近。", 
+                    dialogue: "A: Where's the bus stop? B: The bus stop is near the park. A: Got it, thanks!" 
+                },
+                { 
+                    sentence: "Can you call a taxi for me?", 
+                    chinese: "你可以幫我叫計程車嗎？", 
+                    dialogue: "A: Can you call a taxi for me? B: Of course! Where are you going? A: To the train station." 
+                },
+                { 
+                    sentence: "I need to buy a ticket.", 
+                    chinese: "我需要買票。", 
+                    dialogue: "A: I need to buy a ticket. B: Which destination? A: One ticket to downtown, please." 
+                },
+                { 
+                    sentence: "Which platform does the train leave from?", 
+                    chinese: "火車從哪個月台出發？", 
+                    dialogue: "A: Which platform does the train leave from? B: Platform 3. A: Thank you very much!" 
+                }
+            ],
+            accommodation: [
+                { 
+                    sentence: "I have a reservation at the hotel.", 
+                    chinese: "我在這間飯店有預訂。", 
+                    dialogue: "A: Welcome! B: Hi, I have a reservation at the hotel. A: Your name, please? B: It's Smith." 
+                },
+                { 
+                    sentence: "Can I see the room first?", 
+                    chinese: "我可以先看看房間嗎？", 
+                    dialogue: "A: Can I see the room first? B: Certainly! Let me show you. A: This looks great!" 
+                },
+                { 
+                    sentence: "What time is check-in?", 
+                    chinese: "什麼時候可以辦理入住？", 
+                    dialogue: "A: What time is check-in? B: Check-in is at 3 PM. A: Perfect, I'll be here at 3." 
+                },
+                { 
+                    sentence: "Is breakfast included?", 
+                    chinese: "有包含早餐嗎？", 
+                    dialogue: "A: Is breakfast included? B: Yes, it's included. A: What time is breakfast served? B: From 7 to 10 AM." 
+                },
+                { 
+                    sentence: "Here is your key card.", 
+                    chinese: "這是你的房卡。", 
+                    dialogue: "A: Here is your key card. B: Thank you! A: You're in room 305. B: Got it!" 
+                }
+            ]
+        };
+
+        // State
+        let currentCategory = 'greetings';
+        let currentCardIndex = 0;
+        let isFlipped = false;
+
+        // DOM Elements
+        const flashcard = document.getElementById('flashcard');
+        const englishSentence = document.getElementById('english-sentence');
+        const chineseTranslation = document.getElementById('chinese-translation');
+        const dialogueText = document.getElementById('dialogue-text');
+        const cardCounter = document.getElementById('card-counter');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        const audioBtns = document.querySelectorAll('.audio-btn');
+
+        // Initialize
+        function init() {
+            updateCard();
+            updateCounter();
+            updateNavButtons();
+        }
+
+        // Update card content
+        function updateCard() {
+            const cards = flashcards[currentCategory];
+            const card = cards[currentCardIndex];
+            
+            englishSentence.textContent = card.sentence;
+            chineseTranslation.textContent = card.chinese;
+            dialogueText.textContent = `"${card.dialogue}"`;
+            
+            // Reset flip state
+            if (isFlipped) {
+                flashcard.classList.remove('flipped');
+                isFlipped = false;
+            }
+        }
+
+        // Update counter display
+        function updateCounter() {
+            const total = flashcards[currentCategory].length;
+            cardCounter.textContent = `${currentCardIndex + 1}/${total}`;
+        }
+
+        // Update navigation buttons
+        function updateNavButtons() {
+            const total = flashcards[currentCategory].length;
+            prevBtn.disabled = currentCardIndex === 0;
+            nextBtn.disabled = currentCardIndex === total - 1;
+        }
+
+        // Flip card
+        flashcard.addEventListener('click', () => {
+            flashcard.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+        });
+
+        // Category switching
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button
+                categoryBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update category and reset index
+                currentCategory = btn.dataset.category;
+                currentCardIndex = 0;
+                
+                // Update display
+                updateCard();
+                updateCounter();
+                updateNavButtons();
+            });
+        });
+
+        // Navigation
+        prevBtn.addEventListener('click', () => {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                updateCard();
+                updateCounter();
+                updateNavButtons();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            const total = flashcards[currentCategory].length;
+            if (currentCardIndex < total - 1) {
+                currentCardIndex++;
+                updateCard();
+                updateCounter();
+                updateNavButtons();
+            }
+        });
+
+        // Audio pronunciation
+        audioBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const speed = parseFloat(btn.dataset.speed);
+                const cards = flashcards[currentCategory];
+                const card = cards[currentCardIndex];
+                
+                // Choose text based on card state (front = sentence, back = dialogue)
+                const textToSpeak = isFlipped ? card.dialogue : card.sentence;
+                
+                // Use Web Speech API
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                    utterance.lang = 'en-US';
+                    utterance.rate = speed;
+                    
+                    // Cancel any ongoing speech
+                    speechSynthesis.cancel();
+                    
+                    // Speak
+                    speechSynthesis.speak(utterance);
+                } else {
+                    alert('抱歉，您的瀏覽器不支援語音功能');
+                }
+            });
+        });
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
