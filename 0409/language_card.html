@@ -19,6 +19,22 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background-image 0.5s ease-in-out;
+        }
+        
+        /* 為背景添加半透明遮罩效果 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
         }
 
         .container {
@@ -245,7 +261,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎓 有聲單字卡學習系統</h1>
+        <h1>🎓 情境式英語學習系統</h1>
         
         <!-- Category Buttons -->
         <div class="category-buttons">
@@ -369,6 +385,13 @@
             ]
         };
 
+        // Background images for each category
+        const categoryBackgrounds = {
+            greetings: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1920&q=80', // 握手/問候情境
+            transportation: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=80', // 機場/交通情境
+            accommodation: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1920&q=80' // 飯店大廳情境
+        };
+
         // State
         let currentCategory = 'greetings';
         let currentCardIndex = 0;
@@ -385,8 +408,15 @@
         const categoryBtns = document.querySelectorAll('.category-btn');
         const audioBtns = document.querySelectorAll('.audio-btn');
 
+        // Update background image based on category
+        function updateBackground() {
+            const bgUrl = categoryBackgrounds[currentCategory];
+            document.body.style.backgroundImage = `url('${bgUrl}')`;
+        }
+
         // Initialize
         function init() {
+            updateBackground();
             updateCard();
             updateCounter();
             updateNavButtons();
@@ -439,6 +469,7 @@
                 currentCardIndex = 0;
                 
                 // Update display
+                updateBackground();
                 updateCard();
                 updateCounter();
                 updateNavButtons();
