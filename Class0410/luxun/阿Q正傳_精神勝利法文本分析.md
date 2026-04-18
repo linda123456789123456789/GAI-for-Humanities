@@ -5,17 +5,17 @@
 
 ---
 
-## 2. 執行步驟與指令（Linux vs Windows）
+## 2. 執行步驟與指令（Windows）
 
 > 檔案：`aq.txt`  
 > 建議先以正文範圍分析（約第 37–606 行），排除後段註釋與 Gutenberg 授權文字。
 
-| 步驟 | Linux (grep) | Windows (PowerShell / Select-String) |
-|---|---|---|
-| 找章節位置 | `grep -n "第[一二三四五六七八九十]章" aq.txt` | `Select-String -Path .\aq.txt -Pattern "第[一二三四五六七八九十]章"` |
-| 找核心詞彙 | `grep -nE "精神上的勝利法|得勝|心滿意足|兒子打老子|轉敗為勝|忘卻" aq.txt` | `Select-String -Path .\aq.txt -Pattern "精神上的勝利法|得勝|心滿意足|兒子打老子|轉敗為勝|忘卻"` |
-| 只看正文再查詞 | `sed -n '37,606p' aq.txt \| grep -nE "精神上的勝利法|得勝|心滿意足"` | `Get-Content .\aq.txt \| Select-Object -First 606 \| Select-Object -Skip 36 \| Select-String -Pattern "精神上的勝利法|得勝|心滿意足"` |
-| 抽取關鍵上下文 | `grep -nE "精神上的勝利法|轉敗為勝|兒子打老子" aq.txt` | `Select-String -Path .\aq.txt -Pattern "精神上的勝利法|轉敗為勝|兒子打老子"` |
+| 步驟 | Windows (PowerShell / Select-String) |
+|---|---|
+| 找章節位置 | `Select-String -Path .\aq.txt -Pattern "第[一二三四五六七八九十]章"` |
+| 找核心詞彙 | `Select-String -Path .\aq.txt -Pattern "精神上的勝利法\|得勝\|心滿意足\|兒子打老子\|轉敗為勝\|忘卻"` |
+| 只看正文再查詞 | `Get-Content .\aq.txt \| Select-Object -First 606 \| Select-Object -Skip 36 \| Select-String -Pattern "精神上的勝利法\|得勝\|心滿意足"` |
+| 抽取關鍵上下文 | `Select-String -Path .\aq.txt -Pattern "精神上的勝利法\|轉敗為勝\|兒子打老子"` |
 
 ---
 
