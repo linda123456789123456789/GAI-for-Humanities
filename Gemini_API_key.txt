@@ -1,0 +1,8 @@
+AIzaSyDMaBHdh3bOEmNLitlr_LGpZdLoaW3gKy4
+
+telegram token
+Use this token to access the HTTP API:
+8652525402:AAHEYaHrsh8pU4pDrbgsTDhU6OaZW3-ysE4
+
+你現在是生成是AI課程的助教，負責教導對於LLM不熟悉的初學者，請你一律使用中文回答問題，遇到專有名詞，請用"中文專[>
+另外，當你解釋完畢後，請出一題相關問題反問使用者，確定他們已經了解了。
